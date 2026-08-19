@@ -5,8 +5,13 @@ import os
 import requests
 from translation_map import TRANSLATIONS
 
-# Cache file stored in the data folder
-CACHE_FILE = "data/nutrition_cache.json"
+
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CACHE_FILE = os.path.join(_BASE_DIR, "data", "nutrition_cache.json")
+
+
+DEFAULT_APP_ID = "4ab78244"
+DEFAULT_APP_KEY = "2c8f940dfe2ac77498fd8b586fe9dba9"
 
 def load_cache():
     """Loads the local nutrition cache if it exists."""
@@ -21,19 +26,18 @@ def save_cache(cache):
     with open(CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
 
-def get_nutrition_data(item_name, app_id="4ab78244", app_key="
-2c8f940dfe2ac77498fd8b586fe9dba9	"):
+def get_nutrition_data(item_name, app_id=None, app_key=None):
     """
     Fetches nutrition data from Edamam API, translating local dishes if necessary.
-    Uses a local cache to avoid redundant API calls.
     """
+    app_id = app_id or os.environ.get("EDAMAM_APP_ID", DEFAULT_APP_ID)
+    app_key = app_key or os.environ.get("EDAMAM_APP_KEY", DEFAULT_APP_KEY)
     cache = load_cache()
-    
-    # Check cache first
+
     if item_name in cache:
         return cache[item_name]
         
-    # Use translated query for local meals; default to original name
+
     query = TRANSLATIONS.get(item_name, item_name)
     
     url = "https://api.edamam.com/api/food-database/v2/parser"
@@ -54,10 +58,10 @@ def get_nutrition_data(item_name, app_id="4ab78244", app_key="
         data = {
             "calories": round(nutrients.get("ENERC_KCAL", 0), 1),
             "protein": round(nutrients.get("PROCNT", 0), 1),
-            "allergens": parsed_food.get("healthLabels", []) # Edamam returns diet/health labels here
+            "allergens": parsed_food.get("healthLabels", []) 
         }
     except (IndexError, KeyError, requests.RequestException):
-        # Fallback values if API fails, item isn't found, or keys are invalid
+        # If API fails
         data = {"calories": 0.0, "protein": 0.0, "allergens": []}
 
     # Save new data to cache
