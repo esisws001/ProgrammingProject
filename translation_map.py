@@ -1,8 +1,7 @@
 # translation_map.py
 
 """
-Maps local Ghanaian menu items to descriptive ingredient phrases 
-so the Edamam NLP API can accurately calculate nutritional data.
+Local dishes ingredients.
 """
 
 TRANSLATIONS = {
